@@ -1,0 +1,6 @@
+_scratch/
+*.local.md
+.DS_Store
+.env
+.env.*
+.cwi/
