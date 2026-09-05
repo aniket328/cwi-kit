@@ -43,7 +43,7 @@ The schema itself: [`docs/ROOM-SCHEMA.md`](docs/ROOM-SCHEMA.md). Design record: 
 
 ## Hooks
 
-`.claude/settings.json` in a workspace gets three hooks: `SessionStart` prints `STATE.md` and the agenda's Next list into context; `Stop` commits the room locally after every turn; `SessionEnd` commits and pushes. All silent, none ever fails a turn. A log of what they did is in `<workspace>/.cwi/sync.log`.
+`.claude/settings.json` (Claude Code) and `.codex/hooks.json` (Codex, with `hooks = true` in `.codex/config.toml`; run `/hooks` once in Codex to trust them) in a workspace get three hooks: `SessionStart` prints `STATE.md` and the agenda's Next list into context; `Stop` commits the room locally after every turn; `SessionEnd` commits and pushes. All silent, none ever fails a turn. A log of what they did is in `<workspace>/.cwi/sync.log`.
 
 ## Tests
 

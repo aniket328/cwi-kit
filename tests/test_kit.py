@@ -113,6 +113,12 @@ class TestWsInit(TempTree):
         self.assertIn("echo hi", cmds)
         self.assertIn("cwi hook stop", cmds)
         self.assertIn("SessionEnd", data["hooks"])
+        codex = json.loads((wsdir / ".codex" / "hooks.json").read_text())
+        self.assertEqual({k for k in codex["hooks"]}, {"SessionStart", "Stop", "SessionEnd"})
+        end = codex["hooks"]["SessionEnd"][0]["hooks"][0]
+        self.assertEqual(end["command"], "cwi hook end")
+        self.assertGreaterEqual(end["timeout"], 60, "Codex SessionEnd defaults to 1s; push needs more")
+        self.assertIn("hooks = true", (wsdir / ".codex" / "config.toml").read_text())
 
 
 class TestRoomCheck(TempTree):

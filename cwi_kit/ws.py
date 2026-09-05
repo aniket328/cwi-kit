@@ -146,12 +146,15 @@ def render_ws_meta(m, ws):
     return "\n".join(lines) + "\n"
 
 
-def settings(ws):
-    p = Path(ws) / ".claude" / "settings.json"
+CODEX_CONFIG_LINES = ("[features]", "hooks = true")
+
+
+def _merge_hooks(path):
+    """Add the three cwi hooks to a Claude/Codex hooks JSON file, keeping every other key."""
     data = {}
-    if p.is_file():
+    if path.is_file():
         try:
-            data = json.loads(p.read_text(encoding="utf-8"))
+            data = json.loads(path.read_text(encoding="utf-8"))
         except json.JSONDecodeError:
             data = {}
     hooks = data.setdefault("hooks", {})
@@ -165,10 +168,27 @@ def settings(ws):
                 hook["statusMessage"] = msg
             entries.append({"hooks": [hook]})
             changed = True
-    if changed or not p.exists():
-        p.parent.mkdir(parents=True, exist_ok=True)
-        p.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
-    return p
+    if changed or not path.exists():
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+    return changed
+
+
+def settings(ws):
+    """Write the hooks for Claude Code (.claude/settings.json) and Codex (.codex/hooks.json +
+    features.hooks in .codex/config.toml). Codex project hooks still need a one-time /hooks trust."""
+    ws = Path(ws)
+    claude = ws / ".claude" / "settings.json"
+    codex = ws / ".codex" / "hooks.json"
+    _merge_hooks(claude)
+    _merge_hooks(codex)
+    cfg = ws / ".codex" / "config.toml"
+    text = cfg.read_text(encoding="utf-8") if cfg.is_file() else ""
+    if "hooks = true" not in text and "codex_hooks = true" not in text:
+        text = (text.rstrip("\n") + "\n\n" if text.strip() else "") + "\n".join(CODEX_CONFIG_LINES) + "\n"
+        cfg.parent.mkdir(parents=True, exist_ok=True)
+        cfg.write_text(text, encoding="utf-8")
+    return claude
 
 
 def link_targets(room, m=None):
